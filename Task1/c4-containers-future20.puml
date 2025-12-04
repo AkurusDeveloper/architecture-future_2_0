@@ -1,0 +1,64 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_LEFT_RIGHT()
+
+Person(employee, "сотрудник", "получает отчеты и создает свои")
+
+System_Boundary(platform, "Платформа данных ''Будущее 2.0''") {
+	System_Boundary(portal_domain, "Домен витрины данных") {
+		Container(portal, "портал витрина данных", "Web", "самообслуживание и ролевой доступ")
+		Container(gateway, "шлюз API", "API Gateway", "Единая точка входа")
+		Container(reporting, "сервис отчетности", "Service", "Генерация отчетов")
+		Container(bi, "BI платформа", "BI", "Визуализация и модели")
+	}
+	
+	System_Boundary(data_domain, "Домен платформы данных") {
+		Container(catalog, "каталог данных", "Service", "Доступ и метаданные")
+		Container(access, "Управление доступом", "Service", "Роли и аудит")
+		ContainerDb(dwh, "Хранилище данных", "Cloud DWH", "Витрины и агрегаты")
+		ContainerDb(datalake, "Хранилище сырых данных", "Object Storage", "Data lake")
+		Container(orchestrator, "Оркестрация ETL", "Scheduler", "планирование и пайплайны")
+	}
+	
+	System_Boundary(integration_domain, "Домен интеграции") {
+		Container(connect, "Коннекторы и адаптеры", "Kafka Connect/iPaaS", "Подключение источников и публикация событий")
+		Container(streamproc, "Потоковые обработки", "Flink/Kafka Streams", "ФЛК, DQ и трансформации в потоке")
+		ContainerQueue(streams, "Платформа потоков", "Kafka", "Сообщения")
+		Container(registry, "Реестр схем", "Schema Registry", "Контракты и валидация сообщений")
+	}
+	
+	Container(idp, "идентификация", "IdP", "провайдер учетных записей")
+}
+
+System_Ext(fintech, "финтех сервисы", "Банковские сервисы с лицензией")
+System_Ext(ai, "ИИ сервисы", "Обработка медицинских данных")
+System_Ext(clinics, "клинические приложения", "Медицинские системы")
+System_Ext(legacy_dwh, "легаси DWH", "MS SQL Server 2008", "Монолитное хранилище")
+
+Rel(employee, portal, "работает с")
+Rel(portal, gateway, "запросы данных")
+Rel(portal, access, "проверка прав")
+Rel(portal, reporting, "заказы отчетов")
+Rel(portal, catalog, "поиск наборов")
+Rel(portal, bi, "открывает отчеты")
+Rel(gateway, idp, "аутентификация")
+Rel(reporting, dwh, "читает витрины")
+Rel(bi, dwh, "читает данные")
+Rel(orchestrator, dwh, "пишет данные")
+Rel(orchestrator, datalake, "пишет сырые наборы")
+Rel(streams, orchestrator, "события")
+Rel(connect, streams, "публикует")
+Rel(streamproc, streams, "читает/пишет")
+Rel(connect, registry, "валидация контрактов")
+Rel(streamproc, registry, "контракты")
+Rel(fintech, connect, "интеграция")
+Rel(ai, connect, "интеграция")
+Rel(clinics, connect, "интеграция")
+Rel(catalog, dwh, "метаданные")
+Rel(access, idp, "синхронизация")
+Rel(legacy_dwh, connect, "миграция данных")
+
+SHOW_LEGEND()
+@enduml
+

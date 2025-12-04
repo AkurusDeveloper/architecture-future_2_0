@@ -1,0 +1,99 @@
+@startuml
+!theme plain
+
+skinparam rectangle {
+    BackgroundColor #E1F5FF
+    BorderColor #0066CC
+}
+
+skinparam database {
+    BackgroundColor #FFF4E1
+    BorderColor #FF9900
+}
+
+skinparam cloud {
+    BackgroundColor #E8F5E9
+    BorderColor #4CAF50
+}
+
+' Внешние акторы
+rectangle "Клиники" as Clinics
+rectangle "Финтех сервисы" as Fintech
+rectangle "ИИ сервисы" as AI
+rectangle "Партнеры\n(фарма, оборудование)" as Partners
+rectangle "Сотрудники" as Employees
+
+' Домены
+rectangle "Домен Клиник" as ClinicDomain
+rectangle "Домен Финтех" as FintechDomain
+rectangle "Домен ИИ-медицины" as AIDomain
+rectangle "Домен Партнеров" as PartnerDomain
+rectangle "Домен Интеграции" as IntegrationDomain
+rectangle "Домен Платформы данных" as DataPlatformDomain
+rectangle "Домен Витрины данных" as PortalDomain
+rectangle "Домен Доступа и каталога" as AccessDomain
+
+' Хранилища
+database "Объектное хранилище\n(сырые данные)" as DataLake
+database "Облачный DWH\n(витрины и агрегаты)" as DWH
+database "Платформа потоков\n(Kafka)" as Streams
+database "IdP" as IdP
+
+' Потоки от доменов к интеграции
+Clinics --> ClinicDomain : "Медицинские процессы"
+Fintech --> FintechDomain : "Банковские операции"
+AI --> AIDomain : "ИИ-задачи"
+Partners --> PartnerDomain : "Данные партнеров"
+
+ClinicDomain --> IntegrationDomain : "События операционных данных\n(обезличенные)"
+FintechDomain --> IntegrationDomain : "События транзакций\nи продуктов"
+AIDomain --> IntegrationDomain : "Результаты анализа"
+PartnerDomain --> IntegrationDomain : "События поставок\nи контрактов"
+
+' Интеграция и потоки
+IntegrationDomain --> Streams : "Валидированные события"
+Streams --> DataPlatformDomain : "События для обработки"
+
+' Платформа данных
+DataPlatformDomain --> DataLake : "Сырые наборы"
+DataPlatformDomain --> DWH : "Витрины и агрегаты\n(без медкарт)"
+
+' Витрина данных
+DWH --> PortalDomain : "Витрины для аналитики"
+AccessDomain --> PortalDomain : "Проверка доступа"
+PortalDomain --> Employees : "Отчеты и дашборды"
+
+' Каталог и доступ
+DWH --> AccessDomain : "Метаданные"
+AccessDomain --> IdP : "Синхронизация пользователей"
+
+' Обратная связь ИИ с клиниками
+AIDomain --> ClinicDomain : "Результаты анализа\nмедданных"
+
+' Комментарии к ключевым сценариям
+note right of IntegrationDomain
+  **Сценарий: Интеграция нового финтех-сервиса**
+  Новый сервис подключается через коннекторы,
+  публикует события без изменения ядра DWH
+end note
+
+note right of AIDomain
+  **Сценарий: Использование ИИ для анализа**
+  ИИ получает согласованные наборы,
+  обрабатывает и возвращает результаты
+end note
+
+note right of PartnerDomain
+  **Сценарий: Обмен с партнерами**
+  Фарма и производители подключаются
+  через интеграционный слой
+end note
+
+note right of PortalDomain
+  **Сценарий: Управленческая отчетность**
+  Портал читает витрины из DWH,
+  медкарты не попадают в аналитику
+end note
+
+@enduml
+

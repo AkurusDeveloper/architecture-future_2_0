@@ -1,0 +1,73 @@
+@startuml
+!theme plain
+
+skinparam rectangle {
+    BackgroundColor #E1F5FF
+    BorderColor #0066CC
+}
+
+skinparam database {
+    BackgroundColor #FFF4E1
+    BorderColor #FF9900
+}
+
+rectangle "Terraform управляет" as Terraform
+rectangle "Ручная настройка" as Manual
+
+cloud "Интернет" as Internet
+
+rectangle "VPC" as VPC {
+    rectangle "Публичная подсеть" as PublicSubnet {
+        database "App VM\n(публичный IP)" as AppVM
+        database "Root диск\n20 GB" as AppRoot
+        database "Data диск\n50 GB" as AppData
+    }
+    
+    rectangle "Приватная подсеть" as PrivateSubnet {
+        database "DB VM\n(только приватный IP)" as DBVM
+        database "Root диск\n20 GB" as DBRoot
+        database "Data диск\n100 GB" as DBData
+    }
+    
+    rectangle "Egress Gateway\n(NAT)" as NAT
+    rectangle "Security Groups" as SG
+}
+
+Terraform --> VPC
+Terraform --> PublicSubnet
+Terraform --> PrivateSubnet
+Terraform --> AppVM
+Terraform --> DBVM
+Terraform --> AppRoot
+Terraform --> AppData
+Terraform --> DBRoot
+Terraform --> DBData
+Terraform --> NAT
+Terraform --> SG
+
+Internet --> AppVM : "SSH, HTTP"
+AppVM --> DBVM : "DB порт\n(5432)"
+PrivateSubnet --> NAT : "Исходящий трафик"
+NAT --> Internet
+
+Manual --> AppVM : "Установка приложения"
+Manual --> DBVM : "Настройка БД"
+
+note right of Terraform
+  **Terraform создает:**
+  - VPC и подсети
+  - VM и диски
+  - NAT Gateway
+  - Security Groups
+  - Маршрутизацию
+end note
+
+note right of Manual
+  **Ручная настройка:**
+  - Установка приложения на App VM
+  - Настройка БД на DB VM
+  - Конфигурация мониторинга
+end note
+
+@enduml
+

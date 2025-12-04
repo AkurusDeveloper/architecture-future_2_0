@@ -1,0 +1,33 @@
+### IDE
+.idea/
+.vscode/
+*.iml
+
+### OS junk
+Thumbs.db
+.DS_Store
+
+### Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+### Drawio/backup artifacts
+.$*.bkp
+*~backup*
+
+### Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+
+# Do not commit real variable files
+*.tfvars
+!*.tfvars.example
+
+# Keep lock file tracked (recommended)
+# .terraform.lock.hcl
+
+
